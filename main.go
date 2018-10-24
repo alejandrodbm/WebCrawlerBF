@@ -30,8 +30,8 @@ func main() {
 	// Load command line arguments
 	if len(os.Args) != 3 {
 		fmt.Println("\n[Simple Breadth-First Web Spider]")
-		fmt.Println("\nUsage:   " + os.Args[0] + " <startingURL>" + " <timeout>")
-		fmt.Println("\nExample: " + os.Args[0] + " https://www.example.com" + " 30\n")
+		fmt.Println("\nUsage:   " + os.Args[0] + " <startingURL>" + " <timeout(secs)>")
+		fmt.Println("\nExample: " + os.Args[0] + " https://www.example.com" + " 10\n")
 		os.Exit(1)
 	}
 	foundExtURL = make([]string, 0)
