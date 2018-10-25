@@ -1,4 +1,4 @@
 [Simple Breadth-First Web Crawler]
 
-Usage:   ./WebSpiderBF <URL> <timeout(secs)>
-Example: ./WebSpiderBF https://www.example.com 10
+Usage:   go run main.go <URL> <timeout(secs)>
+Example: go run main.go https://www.example.com 10
