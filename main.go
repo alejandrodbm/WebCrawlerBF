@@ -1,4 +1,4 @@
-// Crawl a website, breadth-first, listing every local and external paths found in same host
+// Crawl a website, breadth-first, listing every local and external paths found in the same host
 package main
 
 import (
