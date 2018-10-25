@@ -175,7 +175,7 @@ func uniqExtURL(tempURL *url.URL) bool {
 	}
 	for _, uniqExtURL := range uniqueExtURL {
 		if uniqExtURL == tempURL.String() {
-			return false // Match
+			return false
 		}
 	}
 	if tempURL.Host != "" && tempURL.Host != startingURL.Host {
