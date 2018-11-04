@@ -1,4 +1,4 @@
-// Crawl a website, breadth-first, listing every local and external paths found in the same host
+// Crawl a website, breadth-first, listing all unique paths in & out scope + emails + files found...
 package main
 
 import (
@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -19,15 +20,28 @@ type paths struct {
 	url *url.URL
 }
 
+var foundExtURL, uniqueExtURL, emailMatches, linksToFilesInScope, linksToFilesOutScope []string
+
 var (
-	foundExtURL, uniqueExtURL []string
-	foundPaths                []paths
-	startingURL               *url.URL
-	timeout                   time.Duration
+	documentExtensions = []string{"doc", "docx", "pdf", "txt",
+		"key", "odp", "ods", "pps", "ppt", "pptx", "json",
+		"csv", "xlr", "xls", "xlsx", "dat", "db", "dbf",
+		"log", "mdb", "sav", "sql", "xml", "zip", "gz",
+		"tar", "jar", "7z", "arj", "deb", "pkg", "rar",
+		"rpm", "z", "bin", "dmg", "iso", "toast", "vcd",
+		"apk", "bat", "cgi", "pl", "exe", "py", "wsf",
+		"bak", "cab", "cfg", "cpl", "cur", "dll", "dmp",
+		"drv", "ini", "msi", "sys", "tmp", "odt", "rtf",
+		"tex", "wks", "wps", "wpd", "c", "cpp", "cs",
+		"h", "java", "sh", "swift", "vb", "rss", "js",
+		"jsp", "php", "cfm", "cer", "crt", "crl", "pem",
+		"pfx", "p12", "csr", "p7b", "p7r", "spc", "der"}
+	foundPaths  []paths
+	startingURL *url.URL
+	timeout     time.Duration
 )
 
 func main() {
-	// Load command line arguments
 	if len(os.Args) != 3 {
 		fmt.Println("\n[Simple Breadth-First Web Crawler]")
 		fmt.Println("\nUsage:   " + os.Args[0] + " <URL>" + " <timeout(secs)>")
@@ -40,86 +54,138 @@ func main() {
 		log.Fatal("Error parsing timeout. ", err)
 	}
 	timeout = time.Duration(time.Duration(t) * time.Second)
-	// Parse starting URL
+
 	startingURL, err = url.Parse(os.Args[1])
 	if err != nil {
 		log.Fatal("Error parsing starting URL. ", err)
 	}
 	fmt.Printf("\n%s%s%s\n", "Starting Simple Breadth-First Web Crawling for: [", startingURL.String(), "]")
 
-	crawlURLInScope(startingURL.Path)
-	// Print a summary
-	fmt.Printf("\n%s%d%s\n", "Local paths: [", len(foundPaths), " found]")
-	fmt.Printf("%s\n", strings.Repeat("-", 12))
-	for _, path := range foundPaths {
-		fmt.Printf("%s\n", path.url.String())
+	crawlHREFInScope(startingURL.Path)
+
+	if foundPaths != nil {
+		fmt.Printf("\n%s%d%s\n", "Local paths found: [", len(foundPaths), "]")
+		fmt.Printf("%s\n", strings.Repeat("-", 17))
+		for _, path := range foundPaths {
+			fmt.Printf("%s\n", path.url.String())
+		}
 	}
-	fmt.Printf("\n%s%d%s\n", "External paths: [", len(uniqueExtURL), " found]")
-	fmt.Printf("%s\n", strings.Repeat("-", 15))
-	for _, uniqExtURL := range uniqueExtURL {
-		fmt.Printf("%s\n", uniqExtURL)
+
+	if uniqueExtURL != nil {
+		fmt.Printf("\n%s%d%s\n", "External paths found: [", len(uniqueExtURL), "]")
+		fmt.Printf("%s\n", strings.Repeat("-", 20))
+		for _, uniqExtURL := range uniqueExtURL {
+			fmt.Printf("%s\n", uniqExtURL)
+		}
+	}
+
+	if emailMatches != nil {
+		fmt.Printf("\n%s%d%s\n", "Emails found: [", len(emailMatches), "]")
+		fmt.Printf("%s\n", strings.Repeat("-", 12))
+		for _, match := range emailMatches {
+			fmt.Println(match)
+		}
+	} else {
+		fmt.Printf("\n%s%d%s\n", "Emails found: [", len(emailMatches), "]")
+	}
+
+	if linksToFilesInScope != nil {
+		fmt.Printf("\n%s%d%s\n", "Files in scope found: [", len(linksToFilesInScope), "]")
+		fmt.Printf("%s\n", strings.Repeat("-", 20))
+		for _, files := range linksToFilesInScope {
+			fmt.Println(files)
+		}
+	} else {
+		fmt.Printf("\n%s%d%s\n", "Files in scope found: [", len(linksToFilesInScope), "]")
+	}
+
+	if linksToFilesOutScope != nil {
+		fmt.Printf("\n%s%d%s\n", "Files out scope found: [", len(linksToFilesOutScope), "]")
+		fmt.Printf("%s\n", strings.Repeat("-", 21))
+		for _, files := range linksToFilesOutScope {
+			fmt.Println(files)
+		}
+	} else {
+		fmt.Printf("\n%s%d%s\n", "Files out scope found: [", len(linksToFilesOutScope), "]")
 	}
 	fmt.Println()
 }
 
-func crawlURLInScope(path string) {
-	// Create a temporary URL object for this request
+func crawlHREFInScope(path string) {
 	var targetURL url.URL
 	targetURL.Scheme = startingURL.Scheme
 	targetURL.Host = startingURL.Host
 	targetURL.Path = path
-	// Fetch the URL with a timeout, ignore certificate verification and parse to goquery doc
+	
 	transCfg := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	httpClient := &http.Client{Timeout: timeout, Transport: transCfg}
 	response, err := httpClient.Get(targetURL.String())
 	if err != nil {
 		return
 	}
+
 	doc, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
 		return
 	}
-	// Find all links and crawl if new path on same host
+
 	doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		href, exists := s.Attr("href")
 		if !exists {
 			return
 		}
-		parsedURL, err := url.Parse(href)
+		parsedHref, err := url.Parse(href)
 		if err != nil {
 			return
 		}
-		if urlIsInScope(parsedURL) {
+		if strings.Contains(parsedHref.String(), "mailto:") {
+			re := regexp.MustCompile("([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{1,5})")
+			mailAddress := re.FindString(parsedHref.String())
+			if mailNotExist(mailAddress) {
+				emailMatches = append(emailMatches, mailAddress)
+			}
+		}
+		if urlIsInScope(parsedHref) {
+			if linkContainsDocument(parsedHref.String()) {
+				linksToFilesInScope = append(linksToFilesInScope, parsedHref.String())
+			}
+		} else {
+			if urlIsOutOfScope(parsedHref) {
+				if linkContainsDocument(parsedHref.String()) {
+					linksToFilesOutScope = append(linksToFilesOutScope, parsedHref.String())
+				}
+			}
+		}
+		if urlIsInScope(parsedHref) {
 			var URL paths
-			URL.url = parsedURL
-			fmt.Println("\nNew path to crawl: " + parsedURL.String())
+			URL.url = parsedHref
+			fmt.Println("\nNew path to crawl: " + parsedHref.String())
 			foundPaths = append(foundPaths, URL)
-			crawlURLOutOfScope(parsedURL.Path)
-			crawlURLInScope(parsedURL.Path)
+			crawlHREFOutOfScope(parsedHref.Path)
+			crawlHREFInScope(parsedHref.Path)
 		}
 	})
 }
 
-func crawlURLOutOfScope(path string) {
-	// clearing slice...
+func crawlHREFOutOfScope(path string) {
 	foundExtURL = nil
-	// Create a temporary URL object for this request
 	var targetURL url.URL
 	targetURL.Scheme = startingURL.Scheme
 	targetURL.Host = startingURL.Host
 	targetURL.Path = path
-	// Fetch the URL with a timeout, ignore certificate verification and parse to goquery doc
+
 	transCfg := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	httpClient := &http.Client{Timeout: timeout, Transport: transCfg}
 	response, err := httpClient.Get(targetURL.String())
 	if err != nil {
 		return
 	}
+
 	doc, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
 		return
 	}
-	// Find all links and crawl if new path is found on same host
+
 	doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		href, exists := s.Attr("href")
 		if !exists {
@@ -180,6 +246,33 @@ func uniqExtURL(tempURL *url.URL) bool {
 	}
 	if tempURL.Host != "" && tempURL.Host != startingURL.Host {
 		return true
+	}
+	return false
+}
+
+func mailNotExist(mailAddress string) bool {
+	for _, match := range emailMatches {
+		if match == mailAddress {
+			return false
+		}
+	}
+	return true
+}
+
+func linkContainsDocument(url string) bool {
+	urlPieces := strings.Split(url, ".")
+	if len(urlPieces) < 2 {
+		return false
+	}
+	for _, extension := range documentExtensions {
+		if urlPieces[len(urlPieces)-1] == extension {
+			for _, match := range linksToFilesOutScope {
+				if match == url {
+					return false
+				}
+			}
+			return true
+		}
 	}
 	return false
 }
