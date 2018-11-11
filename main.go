@@ -23,7 +23,7 @@ type paths struct {
 var foundExtURL, uniqueExtURL, emailMatches, linksToFilesInScope, linksToFilesOutScope []string
 
 var (
-	documentExtensions = []string{"doc", "docx", "pdf", "txt",
+	documentExtensions = []string{"doc", "docx", "pdf", "txt", "asp", "aspx",
 		"key", "odp", "ods", "pps", "ppt", "pptx", "json",
 		"csv", "xlr", "xls", "xlsx", "dat", "db", "dbf",
 		"log", "mdb", "sav", "sql", "xml", "zip", "gz",
