@@ -23,16 +23,14 @@ type paths struct {
 var foundExtURL, uniqueExtURL, emailMatches, linksToFilesInScope, linksToFilesOutScope []string
 
 var (
-	documentExtensions = []string{"doc", "docx", "pdf", "txt", "asp", "aspx",
-		"key", "odp", "ods", "pps", "ppt", "pptx", "json", "csv", "xlr", "xls",
-		"xlsx", "dat", "db", "dbf", "log", "mdb", "sav", "sql", "xml", "zip",
-		"gz", "tar", "jar", "7z", "arj", "deb", "pkg", "rar", "rpm", "z", "bin",
-		"dmg", "iso", "toast", "vcd", "apk", "bat", "cgi", "pl", "exe", "py",
-		"wsf", "bak", "cab", "cfg", "cpl", "cur", "dll", "dmp", "drv", "ini",
-		"msi", "sys", "tmp", "odt", "rtf", "tex", "wks", "wps", "wpd", "c",
-		"cpp", "cs", "h", "java", "sh", "swift", "vb", "rss", "js", "jsp",
-		"php", "cfm", "cer", "crt", "crl", "pem", "pfx", "p12", "csr", "p7b",
-		"p7r", "spc", "der"}
+	documentExtensions = []string{"doc", "docx", "pdf", "txt", "asp", "aspx", "key",
+		"odp", "ods", "pps", "ppt", "pptx", "json", "csv", "xlr", "xls", "xlsx", "dat",
+		"db", "dbf", "log", "mdb", "sav", "sql", "xml", "zip", "gz", "tar", "jar", "7z",
+		"arj", "deb", "pkg", "rar", "rpm", "z", "bin", "dmg", "iso", "toast", "vcd", "apk",
+		"bat", "cgi", "pl", "exe", "py", "wsf", "bak", "cab", "cfg", "cpl", "cur", "dll",
+		"dmp", "drv", "ini", "msi", "sys", "tmp", "odt", "rtf", "tex", "wks", "wps", "wpd",
+		"c", "cpp", "cs", "h", "java", "sh", "swift", "vb", "rss", "js", "jsp", "php", "cfm",
+		"cer", "crt", "crl", "pem", "pfx", "p12", "csr", "p7b", "p7r", "spc", "der"}
 	foundPaths  []paths
 	startingURL *url.URL
 	timeout     time.Duration
