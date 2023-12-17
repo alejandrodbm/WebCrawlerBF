@@ -1,4 +1,4 @@
-// Crawl a website, breadth-first, listing all unique paths in & out of scope + emails + files found...
+// Crawl a website, breadth-first, listing all unique paths in & out of scope + files + emails.
 package main
 
 import (
