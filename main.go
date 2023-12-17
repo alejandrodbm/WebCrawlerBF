@@ -22,7 +22,13 @@ type paths struct {
 	url *url.URL
 }
 
-var foundExtURL, uniqueExtURL, emailMatches, linksToFilesInScope, linksToImagesInScope, linksToFilesOutScope, linksToImagesOutScope []string
+var foundExtURL,
+    uniqueExtURL,
+    emailMatches,
+    linksToFilesInScope,
+    linksToImagesInScope,
+    linksToFilesOutScope,
+    linksToImagesOutScope []string
 
 var (
 	fileExtensions = []string{
