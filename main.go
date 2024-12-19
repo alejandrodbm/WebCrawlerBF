@@ -106,6 +106,16 @@ func main() {
 		fmt.Printf("\n%s%d%s\n", "Files in scope found: [", len(linksToFilesInScope), "]")
 	}
 
+	if linksToFilesOutScope != nil {
+		fmt.Printf("\n%s%d%s\n", "Files out of scope found: [", len(linksToFilesOutScope), "]")
+		fmt.Printf("%s\n", strings.Repeat("-", 21))
+		for _, file := range linksToFilesOutScope {
+			fmt.Printf("%s\n", file)
+		}
+	} else {
+		fmt.Printf("\n%s%d%s\n", "Files out of scope found: [", len(linksToFilesOutScope), "]")
+	}
+	
 	if linksToImagesInScope != nil {
 		fmt.Printf("\n%s%d%s\n", "Images in scope found: [", len(linksToImagesInScope), "]")
 		fmt.Printf("%s\n", strings.Repeat("-", 21))
@@ -116,24 +126,14 @@ func main() {
 		fmt.Printf("\n%s%d%s\n", "Images in scope found: [", len(linksToImagesInScope), "]")
 	}
 
-	if linksToFilesOutScope != nil {
-		fmt.Printf("\n%s%d%s\n", "Files out scope found: [", len(linksToFilesOutScope), "]")
-		fmt.Printf("%s\n", strings.Repeat("-", 21))
-		for _, file := range linksToFilesOutScope {
-			fmt.Printf("%s\n", file)
-		}
-	} else {
-		fmt.Printf("\n%s%d%s\n", "Files out scope found: [", len(linksToFilesOutScope), "]")
-	}
-
 	if linksToImagesOutScope != nil {
-		fmt.Printf("\n%s%d%s\n", "Images out scope found: [", len(linksToImagesOutScope), "]")
+		fmt.Printf("\n%s%d%s\n", "Images out of scope found: [", len(linksToImagesOutScope), "]")
 		fmt.Printf("%s\n", strings.Repeat("-", 21))
 		for _, image := range linksToImagesOutScope {
 			fmt.Printf("%s\n", image)
 		}
 	} else {
-		fmt.Printf("\n%s%d%s\n", "Images out scope found: [", len(linksToImagesOutScope), "]")
+		fmt.Printf("\n%s%d%s\n", "Images out of scope found: [", len(linksToImagesOutScope), "]")
 	}
 
 	if emailMatches != nil {
